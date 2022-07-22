@@ -1,29 +1,28 @@
 'reach 0.1'
 export const main = Reach.App(() => {
-    const Creator = Participant('Creator', {
-        start: Fun([], Null),
-        amt_of_players: UInt
+    const Alice = Participant('Alice', {
+        ready: Fun([], Null),
+        acc_amt: UInt
     })
-    const Players = API('Players', {
-        connect_acc: Fun([], UInt)
+    const Bob = API('Bob', {
+        enter_acc: Fun([], Null),
     })
     init()
-
-    Creator.only(() => {
-        interact.start()
-        const number = declassify(interact.amt_of_players)
+    Alice.only(() => {
+        interact.ready()
+        const accs_amt = declassify(interact.acc_amt)
     })
-    const initial_count = 0
-    Creator.publish(number)
 
-    const [count] =
-        parallelReduce([initial_count])
+    Alice.publish(accs_amt)
+
+    const [counter] =
+        parallelReduce([accs_amt])
             .invariant(balance() == 0)
-            .while(count < number)
-            .api(Players.connect_acc,
-                (k) => {
-                    k(count);
-                    return [count + 1];
+            .while(counter >= 0)
+            .api(Bob.enter_acc,
+                (a) => {
+                    a(null);
+                    return [counter - 1];
                 })
 
     commit()
